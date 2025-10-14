@@ -1,6 +1,5 @@
 Introduction to Full Stack Development
 
-
     1.1 – Overview: Frontend, Backend, and Databases, Benefits of MERN
 
         1. What is Full Stack Development?
@@ -805,4 +804,3 @@ Introduction to Full Stack Development
                 |   Classes    | Define object blueprints | `class Car {}`   | Define models like `User`, `Product` |
                 |   Promises   | Handle async operations  | `fetch().then()` | API calls, DB queries                |
                 |   Modules    | Organize and reuse code  | `import/export`  | Split backend and frontend logic     |
-
