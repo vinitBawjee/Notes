@@ -1,0 +1,897 @@
+React Components and Elements
+
+    2.1 Creating and Rendering Elements
+        Overview
+            In React, everything you see on the screen (buttons, text, images, forms) is made up of elements.
+            An element is the smallest building block of a React app — it describes what you want to see on the UI.
+
+            Think of React elements as blueprints that tell React what to render in the browser.
+
+        Creating React Elements
+            Using React.createElement()
+                This is the core function behind every React component.
+                It creates a React element that represents a DOM node or a custom component.
+
+            Syntax:
+                React.createElement(type, props, children)
+
+                - type → HTML tag or component name ('h1', 'div', MyComponent)
+                - props → attributes or data you pass ({ className: "header" })
+                - children → content inside the element (text, elements)
+
+            Example:
+                const heading = React.createElement(
+                    "h1",
+                    { className: "title" },
+                    "Hello, React!"
+                );
+            
+                This creates an element:
+
+                <h1 class="title">Hello, React!</h1>
+
+            Real-life Analogy:
+                Imagine React.createElement() as giving an instruction like:
+                    “Hey React, create a heading tag with class ‘title’ that says ‘Hello, React!’”
+
+        Rendering Elements
+            What is Rendering?
+                Rendering means displaying React elements inside the browser (DOM).
+
+                In React, we use ReactDOM library’s method:
+                    ReactDOM.createRoot()
+
+                and
+                    root.render()
+
+            Syntax:
+                import React from "react";
+                import ReactDOM from "react-dom/client";
+
+                const element = <h1>Welcome to React!</h1>;
+
+                const root = ReactDOM.createRoot(document.getElementById("root"));
+                root.render(element);
+
+            Explanation:
+                We created an element (<h1>Welcome to React!</h1>)
+                We selected the root HTML div (id="root")
+                We rendered (inserted) our React element inside it.
+
+            index.html
+                <div id="root"></div>
+
+                After rendering, the page will show:
+                    Welcome to React!
+
+        JSX Way (Simpler Syntax)
+            Writing React.createElement() every time is long and complex.
+            So React introduced JSX (JavaScript XML) — looks like HTML, but works like JavaScript.
+
+            Example (JSX):
+                const element = <h2 className="greet">Hello Vinit!</h2>;
+
+            JSX is compiled into:
+                React.createElement("h2", { className: "greet" }, "Hello Vinit!");
+                Both are the same — JSX is just a shortcut.
+
+            Real-life Example:
+                Imagine you’re building a dashboard for your project.
+                
+                import React from "react";
+                import ReactDOM from "react-dom/client";
+
+                const dashboard = (
+                    <div>
+                        <h1>Admin Dashboard</h1>
+                        <p>Welcome, Vinit</p>
+                        <button>Manage Users</button>
+                    </div>
+                );
+
+                const root = ReactDOM.createRoot(document.getElementById("root"));
+                root.render(dashboard);
+
+                Output:
+                    Admin Dashboard
+                    Welcome, Vinit
+                    [Manage Users]
+
+        Key Points to Remember
+            | Concept           | Description                   | Example                 |
+            | ----------------- | ----------------------------- | ----------------------- |
+            |   React Element   | Smallest UI building block    | `<h1>Hello</h1>`        |
+            |   Rendering       | Placing element into DOM      | `root.render(element)`  |
+            |   JSX             | HTML-like syntax for elements | `<div>Hello</div>`      |
+            |   ReactDOM        | Library for rendering         | `ReactDOM.createRoot()` |
+
+        Interview Tips
+            Q1. What is the difference between React element and React component?
+                Element → a single piece of UI (immutable)
+                Component → reusable function/class that returns elements
+
+            Q2. Why do we need a “root” div in React?
+                It acts as a container where React controls everything dynamically.
+
+            Q3. Can we render multiple elements without a wrapper?
+                Yes, using React Fragments (<> </>)
+
+    2.2 Components and Props Types: Built-in and Custom Property Validation
+        What is a Component?
+            Overview
+                A Component in React is a reusable piece of UI.
+                Think of it like a function or class that returns HTML (JSX).
+
+                You can create small components (like a button or card) and combine them to build large UIs.
+
+            Types of Components
+                Functional Components (Most common, modern)
+                Class Components (Older style, still used in legacy code)
+
+            Functional Component Syntax
+                function Welcome(props) {
+                    return <h2>Hello, {props.name}!</h2>;
+                }
+
+                export default Welcome;
+
+                Usage:
+                    import Welcome from "./Welcome";
+
+                    function App() {
+                        return <Welcome name="Vinit" />;
+                    }
+
+                Output:
+                    Hello, Vinit!
+
+            Class Component Syntax
+                import React, { Component } from "react";
+
+                class Welcome extends Component {
+                    render() {
+                        return <h2>Hello, {this.props.name}!</h2>;
+                    }
+                }
+
+                export default Welcome;
+
+                Both components do the same thing, but functional components are preferred now because they support Hooks and are lightweight.
+
+        What are Props?
+            Definition
+                Props (Properties) are inputs passed from a parent component to a child component.
+                They make components dynamic and reusable.
+
+                Props are read-only (immutable).
+
+            Example:
+                function UserCard(props) {
+                    return (
+                        <div>
+                        <h3>{props.name}</h3>
+                        <p>Age: {props.age}</p>
+                        </div>
+                    );
+                }
+
+                function App() {
+                    return <UserCard name="Vinit" age={21} />;
+                }
+
+            Output:
+                Vinit
+                Age: 21
+
+        PropTypes: Property Validation
+            Overview
+                In large apps, you must ensure the correct type of props are passed.
+                React provides a library called PropTypes for runtime type checking.
+
+                You can specify what type each prop should be, and React will warn you in the console if something is wrong.
+
+            Installation
+                npm install prop-types
+
+            Importing PropTypes
+                import PropTypes from "prop-types";
+
+            Example: Built-in Property Validation
+                import PropTypes from "prop-types";
+
+                function Product({ name, price, inStock }) {
+                    return (
+                        <div>
+                        <h3>{name}</h3>
+                        <p>Price: ₹{price}</p>
+                        <p>{inStock ? "Available" : "Out of Stock"}</p>
+                        </div>
+                    );
+                }
+
+                Product.propTypes = {
+                    name: PropTypes.string.isRequired,
+                    price: PropTypes.number.isRequired,
+                    inStock: PropTypes.bool,
+                };
+
+                Product.defaultProps = {
+                    inStock: true,
+                };
+
+                export default Product;
+
+                Explanation:
+                    string, number, and bool are built-in PropTypes
+                    .isRequired makes the prop mandatory
+                    defaultProps sets a default value
+
+                    If wrong type is passed:
+                        React shows a warning in the browser console.
+
+            List of Common Built-in PropTypes
+                | Type                | Description         | Example                |
+                | ------------------- | ------------------- | ---------------------- |
+                | `PropTypes.string`  | Text values         | `"Vinit"`              |
+                | `PropTypes.number`  | Numeric values      | `100`                  |
+                | `PropTypes.bool`    | True/False          | `true`                 |
+                | `PropTypes.array`   | Arrays              | `["HTML", "CSS"]`      |
+                | `PropTypes.object`  | Objects             | `{id:1, name:"Vinit"}` |
+                | `PropTypes.func`    | Functions           | `()=>{}`               |
+                | `PropTypes.node`    | Anything renderable | JSX, string, number    |
+                | `PropTypes.element` | React element only  | `<div></div>`          |
+
+        Custom Property Validation
+            Sometimes you need to create your own validation logic beyond built-in types.
+
+            Example: Custom Validator
+                function Student({ rollNo }) {
+                    return <h3>Roll Number: {rollNo}</h3>;
+                }
+
+                Student.propTypes = {
+                    rollNo: function (props, propName, componentName) {
+                        if (props[propName] < 1 || props[propName] > 100) {
+                        return new Error(
+                            `Invalid prop ${propName} in ${componentName}. Roll number must be between 1 and 100.`
+                        );
+                        }
+                    },
+                };
+
+                export default Student;
+
+                Explanation:
+                    If the roll number is not between 1–100, React will throw a console error.
+
+        Real-life Example: Using Props in a Dashboard
+            function UserProfile({ name, email, isAdmin }) {
+                return (
+                    <div>
+                    <h2>{name}</h2>
+                    <p>Email: {email}</p>
+                    <p>Role: {isAdmin ? "Admin" : "User"}</p>
+                    </div>
+                );
+            }
+
+            UserProfile.propTypes = {
+                name: PropTypes.string.isRequired,
+                email: PropTypes.string.isRequired,
+                isAdmin: PropTypes.bool,
+            };
+
+            UserProfile.defaultProps = {
+                isAdmin: false,
+            };
+
+            Use Case:
+                When building your Admin Panel (like in your auction project), props help send user info, permissions, andsettings from one component toanother safely.
+
+        Summary Table
+            | Concept                    | Description                 | Example                          |
+            | -------------------------- | --------------------------- | -------------------------------- |
+            |   Component                | Reusable UI block           | `function Button(){}`            |
+            |   Props                    | Input data for components   | `<User name="Vinit" />`          |
+            |   PropTypes                | Validate data type of props | `PropTypes.string.isRequired`    |
+            |   defaultProps             | Default value of prop       | `Component.defaultProps = {...}` |
+            |   Custom Prop Validation   | Manual rules                | Custom function check            |
+
+        Interview Q&A
+            Q1. What are props in React?
+                Props are read-only inputs used to pass data from parent to child components.
+
+            Q2. What is PropTypes used for?
+                PropTypes are used to validate the type of props passed to a component at runtime.
+
+            Q3. What is the difference between defaultProps and isRequired?
+                defaultProps → sets default value
+                isRequired → makes prop mandatory
+
+            Q4. Can props be changed inside a component?
+                No , props are immutable.
+
+    2.3 Class Components and Functional Components
+        Overview
+            In React, components are the building blocks of the user interface.
+            There are two main types of components:
+                Class Components — the traditional React component style (before React Hooks).
+                Functional Components — modern, simpler components introduced with Hooks.
+
+            Both serve the same purpose: to return JSX (UI elements) for rendering.
+
+        Functional Components
+            Definition
+                A Functional Component is a simple JavaScript function that returns JSX.
+                They are lightweight, easy to read, and are now the standard in modern React development.
+
+            Syntax
+                function Welcome(props) {
+                    return <h2>Hello, {props.name}!</h2>;
+                }
+
+                export default Welcome;
+
+                Usage:
+                    import Welcome from "./Welcome";
+
+                    function App() {
+                        return <Welcome name="Vinit" />;
+                    }
+
+                Output:
+                    Hello, Vinit!
+
+            Using Arrow Function Syntax
+                const Welcome = (props) => {
+                    return <h2>Hello, {props.name}!</h2>;
+                };
+
+            Advantages of Functional Components
+                | Advantage              | Description                       |
+                | ---------------------- | --------------------------------- |
+                |   Simpler Syntax       | Just a function returning JSX     |
+                |   Better Performance   | Less memory usage                 |
+                |   Supports Hooks       | Use `useState`, `useEffect`, etc. |
+                |   Easy to Test         | Pure, predictable functions       |
+
+            Example with Hooks
+                import React, { useState } from "react";
+
+                function Counter() {
+                    const [count, setCount] = useState(0);
+
+                    return (
+                        <div>
+                        <h3>Count: {count}</h3>
+                        <button onClick={() => setCount(count + 1)}>Increase</button>
+                        </div>
+                    );
+                }
+
+                Real-life Use Case:
+                    Used for most modern React projects, including your MERN stack app — for UI components like forms, dashboards, cards, etc.
+
+        Class Components
+            Definition
+                A Class Component is a JavaScript ES6 class that extends React.Component.
+                It must include a render() method that returns JSX.
+
+                Before Hooks were introduced, class components were the only way to use state and lifecycle methods.
+
+            Syntax
+                import React, { Component } from "react";
+
+                class Welcome extends Component {
+                    render() {
+                        return <h2>Hello, {this.props.name}!</h2>;
+                    }
+                }
+
+                export default Welcome;
+
+                Usage:
+                    <Welcome name="Vinit" />
+
+                Output:
+                    Hello, Vinit!
+
+            Example with State
+                import React, { Component } from "react";
+
+                class Counter extends Component {
+                    constructor() {
+                        super();
+                        this.state = { count: 0 };
+                    }
+
+                    increment = () => {
+                        this.setState({ count: this.state.count + 1 });
+                    };
+
+                    render() {
+                        return (
+                        <div>
+                            <h3>Count: {this.state.count}</h3>
+                            <button onClick={this.increment}>Increase</button>
+                        </div>
+                        );
+                    }
+                }
+
+                export default Counter;
+
+                Explanation:
+                    this.state → holds internal data
+                    this.setState() → updates the component state and re-renders the UI
+
+            Real-life Example
+                Class components are still found in older React projects or large enterprise apps that haven’t migrated to Hooks yet.
+
+        Difference Between Class and Functional Components
+            | Feature               | **Functional Component** | **Class Component**                   |
+            | --------------------- | ------------------------ | ------------------------------------- |
+            |   Syntax              | JavaScript function      | ES6 class extending `React.Component` |
+            |   State Management    | Uses Hooks (`useState`)  | Uses `this.state`                     |
+            |   Lifecycle Methods   | `useEffect()` Hook       | `componentDidMount()`, etc.           |
+            |   ‘this’ Keyword      | Not used                 | Used with `this.props`, `this.state`  |
+            |   Performance         | Faster (less overhead)   | Slightly slower                       |
+            |   Code Simplicity     | Simple and concise       | More boilerplate                      |
+            |   Preferred In        | Modern React apps        | Legacy or older codebases             |
+
+        Example: Same Component in Both Styles
+            Functional Component
+                function Message() {
+                    const [msg, setMsg] = React.useState("Welcome to React!");
+
+                    return (
+                        <div>
+                        <h3>{msg}</h3>
+                        <button onClick={() => setMsg("You clicked the button!")}>Click Me</button>
+                        </div>
+                    );
+                }
+
+            Class Component
+                class Message extends React.Component {
+                    constructor() {
+                        super();
+                        this.state = { msg: "Welcome to React!" };
+                    }
+
+                    changeMsg = () => {
+                        this.setState({ msg: "You clicked the button!" });
+                    };
+
+                    render() {
+                        return (
+                        <div>
+                            <h3>{this.state.msg}</h3>
+                            <button onClick={this.changeMsg}>Click Me</button>
+                        </div>
+                        );
+                    }
+                }
+
+                Output (Both):
+                    Welcome to React!
+                    [Click Me] → "You clicked the button!"
+
+            When to Use Which
+                | Scenario                 | Recommended                     |
+                | ------------------------ | ------------------------------- |
+                | New React Project        | Functional Components           |
+                | Old Codebase (Pre-Hooks) | Class Components                |
+                | Need Lifecycle & State   | Functional with Hooks           |
+                | Learning OOP Concept     | Class Components (for practice) |
+
+        Interview Questions
+            Q1. What is the main difference between class and functional components?
+            Functional components use functions and Hooks, while class components use classes and lifecycle methods.
+
+            Q2. Can functional components have state?
+            Yes, with the useState Hook.
+
+            Q3. Which one is faster — class or functional?
+            Functional components are faster and more optimized in modern React.
+
+            Q4. Why did React move towards functional components?
+            Because of simplicity, better performance, and the introduction of Hooks in React 16.8.
+
+        Summary
+            | Concept         | Functional Component   | Class Component       |
+            | --------------- | ---------------------- | --------------------- |
+            |   Definition    | Function returning JSX | Class with `render()` |
+            |   State         | `useState`             | `this.state`          |
+            |   Re-render     | Automatic              | `this.setState()`     |
+            |   Hooks         | Supported              | Not needed            |
+            |   Performance   | High                   | Slightly lower        |
+
+    2.4 CSS in JS and Styled Components
+        Overview
+            In React, you can style components in multiple ways — using CSS files, inline styles, or CSS frameworks like Bootstrap.
+
+            But when your project grows, managing separate CSS files becomes complex.
+            To solve this, React introduced the concept of CSS-in-JS — writing CSS directly inside JavaScript.
+
+            What is CSS-in-JS?
+                Definition
+                    CSS-in-JS is a styling technique where CSS is written inside JavaScript files instead of external .css files.
+                    It allows dynamic styling, scoped styles, and reusability — especially useful in component-based architecture.
+
+                Example: Inline Styling
+                    function Button() {
+                        const btnStyle = {
+                            backgroundColor: "blue",
+                            color: "white",
+                            padding: "10px 20px",
+                            border: "none",
+                            borderRadius: "5px",
+                        };
+
+                        return <button style={btnStyle}>Click Me</button>;
+                    }
+
+                    Output: A blue button with white text.
+
+                Advantages of CSS-in-JS
+                    | Benefit                | Description                         |
+                    | ---------------------- | ----------------------------------- |
+                    |   Scoped Styles        | Styles apply only to that component |
+                    |   Dynamic Styling      | Use JS variables for colors, themes |
+                    |   No Name Conflicts    | Avoids class name duplication       |
+                    |   Easier Maintenance   | Keep component + styles in one file |
+
+        Styled Components
+            Overview
+                Styled Components is the most popular CSS-in-JS library for React.
+                It allows you to write real CSS inside your JavaScript, but scoped to each component.
+
+                It’s like combining CSS power + JavaScript flexibility.
+
+            Installation
+                npm install styled-components
+
+            Import
+                import styled from "styled-components";
+
+            Syntax
+                const ComponentName = styled.tag`
+                /* CSS code here */
+                `;
+
+            Example: Styled Button
+                import React from "react";
+                import styled from "styled-components";
+
+                const Button = styled.button`
+                background-color: #007bff;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: #0056b3;
+                }
+                `;
+
+                function App() {
+                    return <Button>Click Me</Button>;
+                }
+
+                export default App;
+
+                Output:
+                    A blue button that darkens on hover — styled directly in JS.
+
+            Dynamic Styling using Props
+                Styled-components support props, allowing customized styles for each component.
+
+                const Button = styled.button`
+                background-color: ${(props) => (props.primary ? "#28a745" : "#6c757d")};
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 5px;
+                `;
+
+                function App() {
+                    return (
+                        <div>
+                        <Button primary>Submit</Button>
+                        <Button>Cancel</Button>
+                        </div>
+                    );
+                }
+
+                Output:
+                    “Submit” → Green button
+                    “Cancel” → Grey button
+
+            This is very useful in dashboards, forms, or theme-based UI (like Light/Dark mode).
+
+        Styling Components with Themes
+            Styled-components also provide a ThemeProvider for global theming (e.g., dark mode).
+
+            Example: Using ThemeProvider
+                import styled, { ThemeProvider } from "styled-components";
+
+                const theme = {
+                primaryColor: "#3498db",
+                secondaryColor: "#2ecc71",
+                };
+
+                const Header = styled.h1`
+                color: ${(props) => props.theme.primaryColor};
+                `;
+
+                function App() {
+                    return (
+                        <ThemeProvider theme={theme}>
+                        <Header>Hello Vinit!</Header>
+                        </ThemeProvider>
+                    );
+                }
+
+                Output:
+                    “Hello Vinit!” in blue — using theme color.
+
+        Extending Styled Components
+            You can extend existing styled components to add or override styles.
+
+            const BaseButton = styled.button`
+                background: gray;
+                color: white;
+                padding: 10px;
+            `;
+
+            const DangerButton = styled(BaseButton)`
+                background: red;
+            `;
+
+            function App() {
+                return <DangerButton>Delete</DangerButton>;
+            }
+
+            Output: Red “Delete” button (inherits padding and color).
+
+            Real-life Example: Product Card
+                const Card = styled.div`
+                    background: #fff;
+                    border: 1px solid #ddd;
+                    border-radius: 10px;
+                    padding: 15px;
+                    width: 250px;
+                    text-align: center;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                `;
+
+                const ProductName = styled.h3`
+                    color: #333;
+                `;
+
+                const Price = styled.p`
+                    color: green;
+                    font-weight: bold;
+                `;
+
+                function Product({ name, price }) {
+                    return (
+                        <Card>
+                        <ProductName>{name}</ProductName>
+                        <Price>₹{price}</Price>
+                        </Card>
+                    );
+                }
+
+            Used in: E-commerce, auction, or listing apps (like your project).
+
+        CSS-in-JS vs External CSS
+            | Feature                 | **CSS-in-JS (Styled Components)** | **Traditional CSS File**        |
+            | ----------------------- | --------------------------------- | ------------------------------- |
+            |   Scope                 | Scoped per component              | Global (can conflict)           |
+            |   Dynamic Styles        | Yes, via props                    | No                              |
+            |   Performance           | Optimized for modern React        | Slightly slower for large files |
+            |   Ease of Maintenance   | Easy (self-contained)             | Hard in large projects          |
+            |   Theming Support       | Built-in                          | Manual setup                    |
+
+        Interview Questions
+            Q1. What is CSS-in-JS in React?
+            It’s a technique where you write CSS styles inside JS files, usually using libraries like styled-components.
+
+            Q2. What are Styled Components?
+            They are a React library that lets you create reusable, styled React components with scoped CSS.
+
+            Q3. How do you add dynamic styling in Styled Components?
+            By using props:
+            background-color: ${props => props.primary ? "blue" : "gray"};
+
+            Q4. Difference between inline CSS and styled-components?
+            Inline CSS → limited, not reusable
+            Styled Components → modular, dynamic, and supports full CSS features
+
+        Summary
+            | Concept               | Description                | Example                            |
+            | --------------------- | -------------------------- | ---------------------------------- |
+            |   CSS-in-JS           | Writing CSS directly in JS | `style={...}`                      |
+            |   Styled Components   | Library for scoped CSS     | `styled.button``...`` `            |
+            |   Dynamic Props       | Conditional styles         | `${props => props.primary && ...}` |
+            |   ThemeProvider       | Global theme support       | `ThemeProvider theme={theme}`      |
+            |   Extending Styles    | Reuse and modify           | `styled(BaseButton)`               |
+
+    2.5 React Routing
+        Overview
+            In React, routing is used to navigate between different pages or components in a single-page application (SPA) without refreshing the browser.
+            Instead of loading new HTML pages, React Router changes the view dynamically, providing a smooth user experience.
+
+                Think of routing like tabs in your app: clicking a tab shows different content without reloading the page.
+
+        React Router
+            React Router is the standard library for routing in React apps.
+
+            Installation
+                npm install react-router-dom
+
+            Importing in App
+                import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+
+            Router / BrowserRouter → Wraps your app to enable routing
+            Routes → Container for all routes
+            Route → Defines a path and component
+            Link → Navigates without reloading the page
+
+        Creating Routes
+            Example: Simple Routing
+                import React from "react";
+                import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+
+                function Home() {
+                return <h2>Home Page</h2>;
+                }
+
+                function About() {
+                return <h2>About Page</h2>;
+                }
+
+                function App() {
+                return (
+                    <Router>
+                    <nav>
+                        <Link to="/">Home</Link> | <Link to="/about">About</Link>
+                    </nav>
+
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/about" element={<About />} />
+                    </Routes>
+                    </Router>
+                );
+                }
+
+                export default App;
+
+                Output:
+                    Clicking Home → shows Home Page
+                    Clicking About → shows About Page
+                    No page reload, only content changes
+
+            Real-life Analogy
+                Imagine a dashboard app:
+                    Clicking Dashboard, Orders, or Profile changes the content dynamically without refreshing the page — this is routing.
+
+        Nested Routing
+            You can have routes inside routes to organize your app better.
+
+            function Dashboard() {
+                return (
+                    <div>
+                    <h2>Dashboard</h2>
+                    <Routes>
+                        <Route path="analytics" element={<h3>Analytics Section</h3>} />
+                        <Route path="reports" element={<h3>Reports Section</h3>} />
+                    </Routes>
+                    </div>
+                );
+            }
+
+            <Routes>
+                <Route path="/dashboard/*" element={<Dashboard />} />
+            </Routes>
+
+            Output:
+                /dashboard/analytics → Analytics Section
+                /dashboard/reports → Reports Section
+
+        Navigation with Link and NavLink
+            Link
+                <Link to="/about">About</Link>
+                Navigates to path without reloading the page
+
+            NavLink
+                <NavLink to="/about" activeClassName="active">About</NavLink>
+                Adds active class automatically when the route matches
+
+        Route Parameters
+            You can pass dynamic data in URL using parameters.
+
+            function User({ id }) {
+                return <h2>User ID: {id}</h2>;
+            }
+
+            <Routes>
+                <Route path="/user/:id" element={<User />} />
+            </Routes>
+
+            Access parameter using useParams():
+                import { useParams } from "react-router-dom";
+
+                function User() {
+                    const { id } = useParams();
+                    return <h2>User ID: {id}</h2>;
+                }
+
+                Example URL: /user/101 → User ID: 101
+
+        Redirects and 404 Pages
+            Redirect (Navigate)
+                import { Navigate } from "react-router-dom";
+
+                <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={<Navigate to="/login" />} />
+                </Routes>
+
+                Redirects user from / to /login
+
+            404 Page
+                <Routes>
+                    <Route path="*" element={<h2>Page Not Found</h2>} />
+                </Routes>
+
+                Catches all unmatched routes
+
+        Real-life Example: E-commerce Navigation
+            <Router>
+                <nav>
+                    <Link to="/">Home</Link>
+                    <Link to="/products">Products</Link>
+                    <Link to="/cart">Cart</Link>
+                </nav>
+
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products" element={<ProductList />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
+            </Router>
+
+            Clicking links → updates page content without reloading, keeping SPA smooth.
+
+        Key Points to Remember
+            | Concept           | Description                        |
+            | ----------------- | ---------------------------------- |
+            |   BrowserRouter   | Wraps the app for routing          |
+            |   Routes          | Container for all Route components |
+            |   Route           | Maps a path to a component         |
+            |   Link            | Navigate without reload            |
+            |   NavLink         | Like Link + active styling         |
+            |   useParams()     | Access dynamic route parameters    |
+            |   Navigate        | Redirect to another route          |
+            |   404 Handling    | `path="*"` catches unknown routes  |
+
+        Interview Questions
+            Q1. What is React Router used for?
+            To handle navigation between components in a SPA without page reload.
+
+            Q2. Difference between Link and NavLink?
+            Link → navigates to route
+            NavLink → navigates + adds active class automatically
+
+            Q3. How do you handle 404 pages in React?
+            Use a <Route path="*" element={<NotFound />} /> to catch all unmatched routes.
+
+            Q4. How do you pass dynamic data in URL?
+            Use Route Parameters (/user/:id) and access with useParams().
