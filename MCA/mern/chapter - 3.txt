@@ -1,0 +1,819 @@
+React State Management
+
+    3.1 Async State Initialization
+        Overview
+            In React, state represents the dynamic data of a component that affects what is rendered.
+            Normally, state is initialized synchronously when a component mounts.
+
+            However, sometimes we need to initialize state asynchronously — for example, fetching API data or loading user preferences before rendering.
+
+                Think of it like: “We don’t know the data yet, so wait until it arrives and then update the component.”
+
+        Why Async State Initialization?
+            Use Cases
+                (1) Fetching data from API when a page loads
+                (2) Loading user settings from local storage or server
+                (3) Reading configuration files before rendering UI
+
+            Problem Example
+                function Profile() {
+                    const [user, setUser] = React.useState(null);
+                    console.log(user); // null initially
+                    return <div>{user.name}</div>; // Error: Cannot read 'name' of null
+                }
+
+                Here, user is not ready immediately, causing a runtime error.
+                Solution → initialize state asynchronously and conditionally render.
+
+        Async State Initialization using useEffect
+            The most common way is using useEffect to fetch data after component mounts.
+
+            Syntax
+                import React, { useState, useEffect } from "react";
+
+                function Profile() {
+                    const [user, setUser] = useState(null);
+
+                    useEffect(() => {
+                        async function fetchUser() {
+                        const response = await fetch("https://api.example.com/user/101");
+                        const data = await response.json();
+                        setUser(data);
+                        }
+
+                        fetchUser();
+                    }, []); // Empty dependency → runs once on mount
+
+                    if (!user) return <div>Loading...</div>;
+
+                    return (
+                        <div>
+                        <h2>{user.name}</h2>
+                        <p>Email: {user.email}</p>
+                        </div>
+                    );
+                }
+
+            Explanation
+                useState(null) → initial state is empty
+                useEffect → runs async fetch after first render
+                setUser(data) → updates state and re-renders component
+                Conditional rendering → avoid runtime errors before data loads
+
+        Async Initialization using Functional Initializer
+            Sometimes you want to initialize state asynchronously from localStorage or computation without using useEffect.
+
+            const [theme, setTheme] = useState(() => {
+                const savedTheme = localStorage.getItem("theme");
+                return savedTheme ? JSON.parse(savedTheme) : "light";
+            });
+
+            Explanation
+                useState can take a function → runs once on initial render
+                Ideal for heavy computation or reading from storage
+
+        Handling Loading States
+            Whenever state is initialized asynchronously, it’s best to use a loading indicator.
+
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+            fetchData().then((res) => {
+                setData(res);
+                setLoading(false);
+            });
+            }, []);
+
+            if (loading) return <div>Loading...</div>;
+
+            Best Practice: Always show feedback to user while async state is not ready.
+
+        Real-life Example: Fetching Products
+            import React, { useState, useEffect } from "react";
+
+            function ProductList() {
+                const [products, setProducts] = useState([]);
+                const [loading, setLoading] = useState(true);
+
+                useEffect(() => {
+                    async function getProducts() {
+                    const response = await fetch("https://api.example.com/products");
+                    const data = await response.json();
+                    setProducts(data);
+                    setLoading(false);
+                    }
+
+                    getProducts();
+                }, []);
+
+                if (loading) return <h3>Loading products...</h3>;
+
+                return (
+                    <div>
+                    {products.map((product) => (
+                        <div key={product.id}>
+                        <h4>{product.name}</h4>
+                        <p>₹{product.price}</p>
+                        </div>
+                    ))}
+                    </div>
+                );
+            }
+
+            Used In: E-commerce apps, dashboards, auction platforms — any component that needs data from server before rendering.
+
+        Key Points to Remember
+            | Concept                    | Explanation                                                        |
+            | -------------------------- | ------------------------------------------------------------------ |
+            |   Async State              | State that depends on async data like API, storage, or computation |
+            |   useEffect                | Used to fetch or initialize async data after first render          |
+            |   Functional Initializer   | `useState(() => expensiveComputation())` for initial value         |
+            |   Loading State            | Always track loading to avoid runtime errors                       |
+            |   Conditional Rendering    | Render only after state is ready (`if (!data) return <Loading />`) |
+
+        Interview Questions
+            Q1. Why do we need async state initialization?
+            Because some data (API, local storage) is not available immediately during render.
+
+            Q2. Can you initialize state asynchronously directly in useState?
+            No, useState itself is synchronous. Use functional initializer or useEffect.
+
+            Q3. How do you handle rendering before data arrives?
+            Use loading states or conditional rendering (if (!data) return <Loading />).
+
+            Q4. Example use case in MERN stack?
+            Fetching products from MongoDB in a dashboard or user profile data for personalized content.
+
+    3.2 Hooks: useState and useEffect
+        Overview of Hooks
+            React Hooks are functions that let you use state and other React features in functional components without using class components.
+
+            Hooks were introduced in React 16.8 and include:
+                useState → for managing state
+                useEffect → for side effects like API calls, subscriptions, or timers
+
+                Think of Hooks as a way to give functional components “powers” of class components.
+
+        useState Hook
+            Purpose
+                useState allows functional components to store and update state.
+
+            Syntax
+                const [state, setState] = useState(initialValue);
+
+                state → current value of the state
+                setState → function to update the state
+                initialValue → starting value (number, string, array, object, etc.)
+
+            Example: Counter
+                import React, { useState } from "react";
+
+                function Counter() {
+                const [count, setCount] = useState(0);
+
+                return (
+                    <div>
+                    <h3>Count: {count}</h3>
+                    <button onClick={() => setCount(count + 1)}>Increase</button>
+                    <button onClick={() => setCount(count - 1)}>Decrease</button>
+                    </div>
+                );
+                }
+
+                export default Counter;
+
+                Output:
+                    Dynamic counter with increment and decrement buttons.
+
+            Real-life Use Case
+                Shopping cart quantity in e-commerce apps
+                Like button count in social media posts
+                Toggle UI elements (show/hide modal)
+
+        useEffect Hook
+            Purpose
+                useEffect allows you to perform side effects in functional components:
+                    Fetching API data
+                    Subscribing to events
+                    Updating document title
+                    Timers or intervals
+
+            Syntax
+                useEffect(() => {
+                // Side effect code here
+
+                return () => {
+                    // Cleanup code here (optional)
+                };
+                }, [dependencies]);
+
+                Dependencies → Array of values; effect runs when any dependency changes
+                Empty array [] → run effect once on mount
+                Cleanup function → remove subscriptions, timers, etc.
+
+            Example: Fetching API Data
+                import React, { useState, useEffect } from "react";
+
+                function Users() {
+                const [users, setUsers] = useState([]);
+                const [loading, setLoading] = useState(true);
+
+                useEffect(() => {
+                    async function fetchUsers() {
+                    const response = await fetch("https://jsonplaceholder.typicode.com/users");
+                    const data = await response.json();
+                    setUsers(data);
+                    setLoading(false);
+                    }
+
+                    fetchUsers();
+                }, []); // empty array → runs once
+
+                if (loading) return <p>Loading users...</p>;
+
+                return (
+                    <ul>
+                    {users.map(user => (
+                        <li key={user.id}>{user.name}</li>
+                    ))}
+                    </ul>
+                );
+                }
+
+                export default Users;
+
+                Explanation:
+                    useState([]) → stores user list
+                    useState(true) → tracks loading
+                    useEffect → fetches data after first render
+                    Conditional rendering prevents errors before data arrives
+
+            Updating Document Title Example
+                useEffect(() => {
+                document.title = `You clicked ${count} times`;
+                }, [count]); // effect runs whenever count changes
+
+                Rules of Hooks
+                    (1) Only call Hooks at the top level (not inside loops or conditions)
+                    (2) Only call Hooks from React functional components or custom Hooks
+                    (3) Use multiple useState or useEffect separately for clarity
+
+        Combining useState and useEffect
+            function TodoApp() {
+            const [todos, setTodos] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetch("https://jsonplaceholder.typicode.com/todos")
+                .then(res => res.json())
+                .then(data => {
+                    setTodos(data.slice(0, 5));
+                    setLoading(false);
+                });
+            }, []);
+
+            if (loading) return <p>Loading todos...</p>;
+
+            return (
+                <div>
+                <h2>Todo List</h2>
+                <ul>
+                    {todos.map(todo => <li key={todo.id}>{todo.title}</li>)}
+                </ul>
+                </div>
+            );
+            }
+
+            Output:
+                Displays first 5 todos dynamically after fetching API data.
+
+        Real-life Use Cases in Projects
+            Async state initialization (like in 3.1)
+            Fetching products for auction website
+            Tracking form input values
+            Updating dashboards dynamically (likes, orders, notifications)
+
+        Key Points to Remember
+            | Hook                   | Purpose                  | Usage                                   |
+            | ---------------------- | ------------------------ | --------------------------------------- |
+            |   useState             | Manage component state   | `const [count, setCount] = useState(0)` |
+            |   useEffect            | Perform side effects     | Fetch API, timers, subscriptions        |
+            |   Dependencies Array   | Control when effect runs | `[state]` → runs on state change        |
+            |   Cleanup Function     | Avoid memory leaks       | `return () => {}` inside useEffect      |
+
+        Interview Questions
+            Q1. Difference between useState and useEffect?
+            useState → stores dynamic data
+            useEffect → performs side effects after render
+
+            Q2. Why is dependency array important?
+            It controls when the effect runs, preventing unnecessary API calls or updates.
+
+            Q3. Can you use Hooks in class components?
+            No, Hooks work only in functional components.
+
+            Q4. Example in MERN stack project?
+            useState → store form inputs
+            useEffect → fetch products or bids from backend API
+
+    3.3 Event Handling in React
+        Overview
+            Event handling in React is how we respond to user interactions like clicks, typing, hovering, or form submissions.
+
+            Unlike plain HTML/JS:
+                React events are camelCase (onClick, onChange)
+                Event handlers are functions, not strings (onclick="...")
+
+                Think of events as “listeners” that trigger actions in your components.
+
+        Basic Event Handling
+            Example: Button Click
+                function App() {
+                    function handleClick() {
+                        alert("Button clicked!");
+                    }
+
+                    return <button onClick={handleClick}>Click Me</button>;
+                }
+
+                export default App;
+
+            Explanation:
+                onClick={handleClick} → event listener
+                No parentheses after handleClick when passing function reference
+                React wraps events in SyntheticEvent for cross-browser consistency
+
+        Handling Events with Parameters
+            If you want to pass arguments to event handlers:
+                function App() {
+                    function greet(name) {
+                        alert(`Hello, ${name}!`);
+                    }
+
+                    return <button onClick={() => greet("Vinit")}>Greet</button>;
+                }
+
+                Explanation:
+                    Use arrow function to pass parameters without calling the function immediately
+
+            Event Object
+                Every React event receives a SyntheticEvent object with info about the event:
+                    function App() {
+                        function handleChange(event) {
+                            console.log(event.target.value);
+                        }
+
+                        return <input type="text" onChange={handleChange} />;
+                    }
+
+                    Logs the input text whenever the user types.
+
+        Form Handling
+            Forms are common in React apps, and events like onChange and onSubmit are crucial.
+
+            Controlled Components
+                import React, { useState } from "react";
+
+                function LoginForm() {
+                const [username, setUsername] = useState("");
+                const [password, setPassword] = useState("");
+
+                const handleSubmit = (e) => {
+                    e.preventDefault(); // prevent page reload
+                    alert(`Username: ${username}, Password: ${password}`);
+                };
+
+                return (
+                    <form onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Username"
+                    />
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Password"
+                    />
+                    <button type="submit">Login</button>
+                    </form>
+                );
+                }
+
+                export default LoginForm;
+
+            Explanation:
+                value={state} → controlled input
+                onChange updates state
+                onSubmit handles form data without page reload
+
+        Event Binding in Class Components
+            In class components, you must bind methods to this:
+                import React, { Component } from "react";
+
+                class App extends Component {
+                constructor() {
+                    super();
+                    this.state = { count: 0 };
+                    this.increment = this.increment.bind(this); // bind event
+                }
+
+                increment() {
+                    this.setState({ count: this.state.count + 1 });
+                }
+
+                render() {
+                    return (
+                    <div>
+                        <h3>Count: {this.state.count}</h3>
+                        <button onClick={this.increment}>Increase</button>
+                    </div>
+                    );
+                }
+                }
+
+                export default App;
+
+            Alternative: Use arrow function to auto-bind:
+                increment = () => {
+                this.setState({ count: this.state.count + 1 });
+                };
+
+        Keyboard Events
+            React supports key events like onKeyDown, onKeyUp, and onKeyPress.
+
+            function App() {
+            const handleKeyDown = (e) => {
+                console.log(`Key pressed: ${e.key}`);
+            };
+
+            return <input type="text" onKeyDown={handleKeyDown} placeholder="Type here" />;
+            }
+
+            Use case: Detect Enter key in forms or search boxes.
+
+        Mouse Events
+            Common mouse events: onClick, onDoubleClick, onMouseEnter, onMouseLeave
+
+            function App() {
+            const handleMouseEnter = () => {
+                console.log("Mouse entered!");
+            };
+
+            return <div onMouseEnter={handleMouseEnter}>Hover over me</div>;
+            }
+
+        Real-life Examples in MERN Projects
+            Auction app:
+                onClick → Place bid button
+                onSubmit → Add product form
+
+            Dashboard app:
+                onMouseEnter → Show tooltip
+                onChange → Update filter input dynamically
+
+            Authentication:
+                onSubmit → Login form
+                onChange → Track username/password input
+
+        Best Practices
+            | Practice                      | Reason                                     |
+            | ----------------------------- | ------------------------------------------ |
+            | Use   arrow functions         | Avoid binding issues in class components   |
+            | Prevent default form behavior | Avoid page reloads (`e.preventDefault()`)  |
+            | Use controlled components     | Keep React state in sync with input values |
+            | Separate handler functions    | Improves readability & reusability         |
+
+        Interview Questions
+            Q1. How do you handle events in React?
+            Use camelCase attributes like onClick and attach handler functions.
+
+            Q2. Difference between HTML and React event handling?
+            React uses camelCase, not lowercase
+            React passes SyntheticEvent, not native JS event
+            You pass function reference, not a string
+
+            Q3. How to handle input fields in React?
+            Use controlled components with value and onChange updating state.
+
+            Q4. How to pass arguments to event handlers?
+                Use arrow functions:
+                <button onClick={() => handleClick(arg)}>Click</button>
+
+    3.4 Forms in React
+        Overview
+            Forms in React are used to collect user input and manage it via state.
+            Unlike HTML forms, React prefers controlled components, where React state drives the form inputs.
+
+                Think of it like: state is the single source of truth for all form data.
+
+        Controlled Components
+            Definition
+                A controlled component has its value controlled by React state.
+                Any change in input updates state via onChange.
+
+            Example: Simple Form
+                import React, { useState } from "react";
+
+                function SimpleForm() {
+                const [name, setName] = useState("");
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    alert(`Name: ${name}`);
+                };
+
+                return (
+                    <form onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your name"
+                    />
+                    <button type="submit">Submit</button>
+                    </form>
+                );
+                }
+
+                export default SimpleForm;
+
+            Explanation:
+                value={name} → input controlled by React state
+                onChange updates state
+                onSubmit handles form data without page reload
+
+        Handling Multiple Inputs
+            For forms with multiple fields, you can use a single state object:
+                function MultiInputForm() {
+                const [formData, setFormData] = useState({ username: "", email: "" });
+
+                const handleChange = (e) => {
+                    setFormData({ ...formData, [e.target.name]: e.target.value });
+                };
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    console.log(formData);
+                };
+
+                return (
+                    <form onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="Username"
+                    />
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="Email"
+                    />
+                    <button type="submit">Submit</button>
+                    </form>
+                );
+                }
+
+            Explanation:
+                [e.target.name] → dynamic key to update state
+                ...formData → preserves other fields
+
+        Uncontrolled Components
+            Inputs managed by the DOM instead of React state
+            Use refs to access values
+
+            Example
+                import React, { useRef } from "react";
+
+                function UncontrolledForm() {
+                const inputRef = useRef();
+
+                const handleSubmit = (e) => {
+                    e.preventDefault();
+                    alert(`Name: ${inputRef.current.value}`);
+                };
+
+                return (
+                    <form onSubmit={handleSubmit}>
+                    <input type="text" ref={inputRef} placeholder="Enter your name" />
+                    <button type="submit">Submit</button>
+                    </form>
+                );
+                }
+
+            Use case:
+                Useful for simple forms or third-party library inputs, but less common in React projects.
+
+        Form Validation
+            Example: Simple Validation
+                const [email, setEmail] = useState("");
+                const [error, setError] = useState("");
+
+                const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!email.includes("@")) {
+                    setError("Invalid email");
+                } else {
+                    setError("");
+                    alert(`Email submitted: ${email}`);
+                }
+                };
+
+            Output: Shows error message if email format is incorrect.
+
+        Real-life Example: Login Form in MERN App
+            function LoginForm() {
+            const [form, setForm] = useState({ username: "", password: "" });
+            const [error, setError] = useState("");
+
+            const handleChange = (e) => {
+                setForm({ ...form, [e.target.name]: e.target.value });
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!form.username || !form.password) {
+                setError("All fields are required");
+                return;
+                }
+                // API call to backend for authentication
+                console.log("Login data:", form);
+            };
+
+            return (
+                <form onSubmit={handleSubmit}>
+                <input
+                    name="username"
+                    value={form.username}
+                    onChange={handleChange}
+                    placeholder="Username"
+                />
+                <input
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="Password"
+                />
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                <button type="submit">Login</button>
+                </form>
+            );
+            }
+
+            Explanation:
+                Prevents submission if fields are empty
+                Integrates easily with backend API
+                Common in MERN stack apps, auctions, dashboards
+
+        Key Points to Remember
+            | Concept                   | Controlled  | Uncontrolled            |
+            | ------------------------- | ----------- | ----------------------- |
+            |   Value source            | React state | DOM                     |
+            |   Accessing value         | `state`     | `ref.current.value`     |
+            |   Validation              | Easy        | Harder                  |
+            |   Recommended for React   | Yes         | Only for simple cases   |
+
+        Interview Questions
+            Q1. Difference between controlled and uncontrolled components?
+            Controlled → React state is source of truth
+            Uncontrolled → DOM manages value
+
+            Q2. How do you handle multiple inputs in one state?
+            Use object state and dynamic [e.target.name] keys.
+
+            Q3. How do you prevent form submission from reloading the page?
+            Use e.preventDefault() in onSubmit.
+
+            Q4. Example in MERN project?
+            Login form, signup form, or product add/edit forms in admin panel.
+
+    3.5 Context API
+        Overview
+            In React, state is local to a component. To share it with child components, you normally pass it via props.
+
+            When many components need the same data (deeply nested), prop drilling becomes cumbersome.
+
+            Context API solves this by providing a way to share data globally across components without passing props manually at every level.
+
+                Think of Context like a global store inside your React app.
+
+        Creating a Context
+            Syntax
+                import React, { createContext } from "react";
+
+                export const MyContext = createContext();
+
+            createContext() → creates a Context object
+            Provides Provider and Consumer for accessing data
+
+        Using Context Provider
+            Wrap components with Provider to pass data:
+                import React, { useState } from "react";
+                import { MyContext } from "./MyContext";
+                import Child from "./Child";
+
+                function App() {
+                const [user, setUser] = useState({ name: "Vinit", role: "Admin" });
+
+                return (
+                    <MyContext.Provider value={{ user, setUser }}>
+                    <Child />
+                    </MyContext.Provider>
+                );
+                }
+
+                export default App;
+
+            Explanation:
+                value={{ user, setUser }} → data shared globally
+                Any child inside Provider can access this data
+
+        Consuming Context in Child Components
+            Using useContext Hook
+                import React, { useContext } from "react";
+                import { MyContext } from "./MyContext";
+
+                function Child() {
+                const { user, setUser } = useContext(MyContext);
+
+                return (
+                    <div>
+                    <h3>Name: {user.name}</h3>
+                    <h4>Role: {user.role}</h4>
+                    <button onClick={() => setUser({ ...user, role: "User" })}>Change Role</button>
+                    </div>
+                );
+                }
+
+                export default Child;
+
+            Explanation:
+                useContext(MyContext) → access shared data
+                Updating state in context re-renders all consuming components
+
+        Nested Components Example
+            function GrandChild() {
+            const { user } = useContext(MyContext);
+            return <p>Welcome, {user.name}!</p>;
+            }
+
+            function Child() {
+            return <GrandChild />;
+            }
+
+            Output:
+                Even deeply nested components can access user data without passing props down manually.
+
+        Updating Context State
+            Context is not just read-only. By passing setters in value, you can update global state:
+                const { user, setUser } = useContext(MyContext);
+                setUser({ ...user, name: "John" });
+
+            Updates all components consuming the context.
+
+        Real-life Examples
+            (1) Authentication state – track logged-in user across app
+            (2) Theme (Dark/Light mode) – shared globally
+            (3) Shopping cart – items accessible in all pages without prop drilling
+            (4) User preferences – language, region, or settings
+
+        Context vs Prop Drilling
+            | Feature            | Context API                | Prop Drilling                    |
+            | ------------------ | -------------------------- | -------------------------------- |
+            |   Ease of use      | Pass data globally         | Pass props through many layers   |
+            |   Dynamic update   | Yes                        | Only via props                   |
+            |   Best use case    | Global state (theme, auth) | Localized data only              |
+            |   Performance      | Slightly more overhead     | Minimal overhead                 |
+
+        Key Points to Remember
+            | Concept              | Explanation                                   |
+            | -------------------- | --------------------------------------------- |
+            |   createContext()    | Creates a Context object                      |
+            |   Provider           | Wraps components and passes value             |
+            |   useContext         | Consumes context value                        |
+            |   Value Prop         | Can pass object, state, functions             |
+            |   Updating Context   | Pass state setter in value to modify globally |
+
+        Interview Questions
+            Q1. What is Context API in React?
+            A way to share global data across components without prop drilling.
+
+            Q2. Difference between Context API and Redux?
+            Context API → simpler, built-in, ideal for light global state
+            Redux → powerful, for complex apps with many actions
+
+            Q3. How do you update context state?
+            Pass state setter in the Provider value and call it in consuming components.
+
+            Q4. Real-life MERN use case?
+            User authentication state
+            Theme management (dark/light mode)
+            Cart management in e-commerce apps
