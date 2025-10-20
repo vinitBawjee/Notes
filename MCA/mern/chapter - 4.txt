@@ -1,0 +1,572 @@
+REST API with Express.js
+
+    4.1: Overview of RESTful API
+        Definition
+            REST (Representational State Transfer) is an architectural style for designing networked applications. A RESTful API is an API that follows REST principles and allows clients (like web apps or mobile apps) to communicate with a server over HTTP methods.
+
+            In simple words:
+                A RESTful API is a way for your application to talk to another application or server over the internet, usually using JSON data.
+
+        Key Principles of RESTful API
+            (1) Client-Server Architecture
+                - Client (frontend) and server (backend) are separate.
+                - Server provides data, client displays it.
+                Example: A React app (client) fetching products from Node.js server (server).
+
+            (2) Stateless
+                - Each HTTP request from the client must contain all the information needed.
+                - Server does not store client state between requests.
+                Example: Sending JWT token with every request to authenticate a user.
+
+            (3) Cacheable
+                - Responses can be cached to improve performance.
+
+            (4) Uniform Interface
+                - Consistent use of HTTP methods and URIs.
+                - Makes APIs easy to understand and use.
+
+            (5) Layered System
+                - API can have multiple layers like gateway, authentication, caching, etc.
+
+            (6) Code on Demand (Optional)
+                - Server can send executable code (like JavaScript) to the client.
+
+        HTTP Methods in REST
+            | Method | Purpose        | Example                                          |
+            | ------ | -------------- | ------------------------------------------------ |
+            | GET    | Read data      | `/api/products` → Get all products               |
+            | POST   | Create data    | `/api/products` → Add new product                |
+            | PUT    | Update data    | `/api/products/1` → Update product with ID 1     |
+            | PATCH  | Partial update | `/api/products/1` → Update only price of product |
+            | DELETE | Delete data    | `/api/products/1` → Delete product with ID 1     |
+
+        RESTful URIs (Endpoints)
+            - URI should represent resources, not actions.
+            - Good example: /users/123 (resource: user with ID 123)
+            - Bad example: /getUser?id=123 (uses action in URI)
+
+        Real-Life Example
+            Imagine an e-commerce website:
+                - Client: Web or mobile app
+                - Server: Node.js + Express.js
+                - Database: MongoDB
+
+            Use Cases:
+                (1) Get all products
+                    GET /api/products
+
+                    Response:
+                        [
+                        { "id": 1, "name": "Laptop", "price": 70000 },
+                        { "id": 2, "name": "Phone", "price": 30000 }
+                        ]
+
+                (2) Add a new product
+                    POST /api/products
+
+                    Request Body:
+                        {
+                        "name": "Headphones",
+                        "price": 2000
+                        }
+
+                    Response:
+                        { "id": 3, "name": "Headphones", "price": 2000 }
+
+                (3) Update a product
+                    PUT /api/products/3
+
+                    Request Body:
+                        {
+                        "name": "Wireless Headphones",
+                        "price": 2500
+                        }
+
+                (4) Delete a product
+                    DELETE /api/products/3
+
+        Advantages of RESTful API
+            (1) Scalability: Client and server can evolve independently.
+            (2) Flexibility: Can handle multiple data formats (JSON, XML).
+            (3) Statelessness: Reduces server memory usage.
+            (4) Ease of Integration: Standard HTTP methods make it easy to integrate with web/mobile apps.
+
+        Express.js Implementation Example
+            const express = require('express');
+            const app = express();
+
+            app.use(express.json()); // Parse JSON body
+
+            // Sample in-memory data
+            let products = [
+            { id: 1, name: "Laptop", price: 70000 },
+            { id: 2, name: "Phone", price: 30000 }
+            ];
+
+            // GET all products
+            app.get('/api/products', (req, res) => {
+            res.json(products);
+            });
+
+            // POST new product
+            app.post('/api/products', (req, res) => {
+            const newProduct = { id: products.length + 1, ...req.body };
+            products.push(newProduct);
+            res.status(201).json(newProduct);
+            });
+
+            // PUT update product
+            app.put('/api/products/:id', (req, res) => {
+            const id = parseInt(req.params.id);
+            let product = products.find(p => p.id === id);
+            if (!product) return res.status(404).send('Product not found');
+
+            product = { ...product, ...req.body };
+            products = products.map(p => p.id === id ? product : p);
+            res.json(product);
+            });
+
+            // DELETE product
+            app.delete('/api/products/:id', (req, res) => {
+            const id = parseInt(req.params.id);
+            products = products.filter(p => p.id !== id);
+            res.status(204).send();
+            });
+
+            app.listen(3000, () => console.log('Server running on port 3000'));
+
+        Interview Tips
+            (1) Explain REST vs SOAP differences.
+            (2) Always mention statelessness and resource-based endpoints.
+            (3) Give real-life examples (e-commerce, social media, banking apps).
+            (4) Know how to test REST APIs (Postman, curl, or frontend app).
+
+    4.2: HTTP Methods as Actions
+        Overview
+            HTTP methods define the action a client wants to perform on a resource in a RESTful API. Each method has a specific purpose and expected behavior.
+
+                Think of an API as a library:
+                    - GET → read a book
+                    - POST → add a new book
+                    - PUT → replace a book
+                    - PATCH → update part of a book
+                    - DELETE → remove a book
+
+        Common HTTP Methods in REST APIs
+            | HTTP Method | Action / Purpose        | Idempotent? | Typical Use Case           | Example Endpoint |
+            | ----------- | ----------------------- | ----------- | -------------------------- | ---------------- |
+            |   GET       | Retrieve data           |   Yes       | Fetching resources         | `/api/users`     |
+            |   POST      | Create new resource     |   No        | Adding new items           | `/api/users`     |
+            |   PUT       | Update/Replace resource |   Yes       | Replace full resource      | `/api/users/1`   |
+            |   PATCH     | Update partial resource |   Usually   | Update part of a resource  | `/api/users/1`   |
+            |   DELETE    | Remove resource         |   Yes       | Delete an item             | `/api/users/1`   |
+            |   OPTIONS   | Check allowed methods   |   Yes       | Preflight request for CORS | `/api/users`     |
+            |   HEAD      | Retrieve headers only   |   Yes       | Check if resource exists   | `/api/users`     |
+
+        Explanation of Each Method
+            (1) GET – Retrieve
+                - Used to fetch data from the server.
+                - Should not change server data (safe method).
+                - Idempotent: Multiple GET requests return the same result.
+
+                Example:
+                    GET /api/products
+
+                Response:
+                    [
+                    { "id": 1, "name": "Laptop", "price": 70000 },
+                    { "id": 2, "name": "Phone", "price": 30000 }
+                    ]
+
+            (2) POST – Create
+                - Used to add new resources.
+                - Non-idempotent: Multiple POST requests create multiple resources.
+
+                Example:
+                    POST /api/products
+
+                Request Body:
+                    {
+                    "name": "Headphones",
+                    "price": 2000
+                    }
+
+                Response:
+                    { "id": 3, "name": "Headphones", "price": 2000 }
+
+            (3) PUT – Update/Replace
+                - Used to replace a resource completely.
+                - Idempotent: Multiple identical PUT requests result in the same resource state.
+
+                Example:
+                    PUT /api/products/3
+
+                Request Body:
+                    {
+                    "name": "Wireless Headphones",
+                    "price": 2500
+                    }
+
+            (4) PATCH – Partial Update
+                - Used to update part of a resource.
+                - Non-idempotent if the update is additive (depends on server logic).
+
+                Example:
+                    PATCH /api/products/3
+
+                Request Body:
+                    {
+                    "price": 2300
+                    }
+
+            (5) DELETE – Remove
+                - Removes a resource from the server.
+                - Idempotent: Repeated DELETE calls return same result (resource gone).
+
+                Example:
+                    DELETE /api/products/3
+
+                Response: Status 204 No Content
+
+        Real-Life Example (E-commerce App)
+            | Action               | HTTP Method | Endpoint          | Description                 |
+            | -------------------- | ----------- | ----------------- | --------------------------- |
+            | View all products    | GET         | `/api/products`   | Fetch product list          |
+            | Add a product        | POST        | `/api/products`   | Add new product             |
+            | Update product info  | PUT         | `/api/products/1` | Replace product details     |
+            | Update product price | PATCH       | `/api/products/1` | Change only price           |
+            | Delete a product     | DELETE      | `/api/products/1` | Remove product from catalog |
+
+        Express.js Syntax Example
+            const express = require('express');
+            const app = express();
+
+            app.use(express.json());
+
+            let products = [
+            { id: 1, name: "Laptop", price: 70000 }
+            ];
+
+            // GET
+            app.get('/api/products', (req, res) => {
+            res.json(products);
+            });
+
+            // POST
+            app.post('/api/products', (req, res) => {
+            const newProduct = { id: products.length + 1, ...req.body };
+            products.push(newProduct);
+            res.status(201).json(newProduct);
+            });
+
+            // PUT
+            app.put('/api/products/:id', (req, res) => {
+            const id = parseInt(req.params.id);
+            let product = products.find(p => p.id === id);
+            if (!product) return res.status(404).send('Product not found');
+            
+            product = { id, ...req.body };
+            products = products.map(p => p.id === id ? product : p);
+            res.json(product);
+            });
+
+            // PATCH
+            app.patch('/api/products/:id', (req, res) => {
+            const id = parseInt(req.params.id);
+            let product = products.find(p => p.id === id);
+            if (!product) return res.status(404).send('Product not found');
+
+            Object.assign(product, req.body);
+            res.json(product);
+            });
+
+            // DELETE
+            app.delete('/api/products/:id', (req, res) => {
+            const id = parseInt(req.params.id);
+            products = products.filter(p => p.id !== id);
+            res.status(204).send();
+            });
+
+            app.listen(3000, () => console.log('Server running on port 3000'));
+
+        Interview Tips
+            (1) Know safe vs unsafe methods (GET is safe, POST is not).
+            (2) Know idempotent vs non-idempotent methods (GET, PUT, DELETE are idempotent).
+            (3) Be ready to explain real-life scenarios for each method.
+            (4) Understand difference between PUT and PATCH.
+
+    4.3: Routing and Middleware
+        Routing in Express.js
+            Definition:
+                Routing is the process of defining endpoints (URLs) and the HTTP methods that handle requests to those endpoints.
+                    Simply put: Routing decides how your server responds to a client request to a particular path and method.
+
+                Example:
+                    - Endpoint: /api/products
+                    - HTTP Method: GET
+                    - Response: List of products
+
+            Basic Syntax:
+                app.METHOD(PATH, HANDLER)
+
+                - app → Express application
+                - METHOD → HTTP method (get, post, put, patch, delete)
+                - PATH → URL path
+                - HANDLER → Function executed when route is matched
+
+                Example:
+                    const express = require('express');
+                    const app = express();
+
+                    app.get('/api/products', (req, res) => {
+                    res.send('List of products');
+                    });
+
+                    app.post('/api/products', (req, res) => {
+                    res.send('New product added');
+                    });
+
+                    app.listen(3000, () => console.log('Server running on port 3000'));
+
+        Route Parameters
+            Route parameters allow you to capture dynamic values from the URL.
+
+            Syntax:
+                app.get('/api/products/:id', (req, res) => {
+                const productId = req.params.id;
+                res.send(`Product ID is ${productId}`);
+                });
+
+            Example Request:
+                GET /api/products/5
+
+            Response:
+                Product ID is 5
+
+        Query Parameters
+            Query parameters are used to filter or sort resources. They are sent after ? in URL.
+
+            Syntax:
+                app.get('/api/products', (req, res) => {
+                const category = req.query.category;
+                res.send(`Products in category: ${category}`);
+                });
+
+            Example Request:
+                GET /api/products?category=electronics
+
+            Response:
+                Products in category: electronics
+
+        Middleware in Express.js
+            Definition:
+            Middleware functions are functions that run during the request-response cycle. They can process request data, modify response, or handle errors before reaching the final route handler.
+
+                Think of middleware as a checkpoint or filter in your server.
+
+            Types of Middleware:
+                (1) Application-level – Applied to all routes using app.use()
+                (2) Route-level – Applied to a specific route
+                (3) Third-party – External packages like cors, body-parser
+                (4) Error-handling – Handles errors with 4 parameters (err, req, res, next)
+
+        Syntax of Middleware
+            function middleware(req, res, next) {
+            console.log('Request received at', new Date());
+            next(); // Pass control to next middleware or route
+            }
+
+            app.use(middleware);
+
+            Example: Logging Middleware
+                app.use((req, res, next) => {
+                console.log(`${req.method} request to ${req.url}`);
+                next();
+                });
+
+        Route-level Middleware Example
+            function authMiddleware(req, res, next) {
+            if (req.headers['authorization'] === '12345') {
+                next();
+            } else {
+                res.status(401).send('Unauthorized');
+            }
+            }
+
+            app.get('/api/products', authMiddleware, (req, res) => {
+            res.send('Protected products list');
+            });
+
+        Real-Life Example
+            Imagine an e-commerce website:
+                Routing:
+                    - /api/products → list all products
+                    - /api/products/:id → get product details
+
+                Middleware:
+                    - Authentication: Ensure only logged-in users can buy products
+                    - Logging: Track every request for analytics
+                    - Error Handling: Catch invalid requests or server errors
+
+                Code Example:
+                    const express = require('express');
+                    const app = express();
+
+                    app.use(express.json()); // Body parser middleware
+
+                    // Logging middleware
+                    app.use((req, res, next) => {
+                    console.log(`${req.method} ${req.url}`);
+                    next();
+                    });
+
+                    // Routes
+                    app.get('/api/products', (req, res) => {
+                    res.json([{ id: 1, name: "Laptop" }]);
+                    });
+
+                    app.get('/api/products/:id', (req, res) => {
+                    res.json({ id: req.params.id, name: "Laptop" });
+                    });
+
+                    // Error handling middleware
+                    app.use((err, req, res, next) => {
+                    console.error(err.stack);
+                    res.status(500).send('Something broke!');
+                    });
+
+                    app.listen(3000, () => console.log('Server running on port 3000'));
+
+        Interview Tips
+            - Understand difference between app-level and route-level middleware.
+            - Be ready to explain how middleware works step-by-step (request → middleware → route → response).
+            - Know common third-party middleware: cors, helmet, morgan, body-parser.
+            - Real-life scenario examples help: logging, authentication, error handling.
+
+    4.4: Handling HTTP Request and Response: Fetch API
+        Overview
+            The Fetch API is a modern JavaScript interface used to make HTTP requests from the browser (or client-side) to a server. It replaces older methods like XMLHttpRequest and is promise-based, making asynchronous operations easier.
+
+                In simple words: Fetch API is how the frontend talks to the backend to get or send data.
+
+        Basic Syntax
+            fetch(url, options)
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+
+            - url → Endpoint to which the request is sent
+            - options → Object to define method, headers, body, etc.
+            - Returns a Promise, which resolves to a Response object
+
+        HTTP Methods Using Fetch API
+            (1) GET Request (Read Data)
+                fetch('http://localhost:3000/api/products')
+                .then(res => res.json())
+                .then(data => console.log(data))
+                .catch(err => console.error(err));
+
+                Explanation:
+                    No body needed
+                    Retrieves resource from the server
+
+            (2) POST Request (Create Data)
+                fetch('http://localhost:3000/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'Headphones', price: 2000 })
+                })
+                .then(res => res.json())
+                .then(data => console.log(data))
+                .catch(err => console.error(err));
+
+                Explanation:
+                    method: 'POST' → Create resource
+                    headers → Tell server the type of data (JSON)
+                    body → Data sent to server
+
+            (3) PUT Request (Update/Replace Data)
+                fetch('http://localhost:3000/api/products/1', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'Laptop Pro', price: 80000 })
+                })
+                .then(res => res.json())
+                .then(data => console.log(data))
+                .catch(err => console.error(err));
+
+                Explanation:
+                    Replaces the full resource at ID 1
+
+            (4) PATCH Request (Partial Update)
+                fetch('http://localhost:3000/api/products/1', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ price: 75000 })
+                })
+                .then(res => res.json())
+                .then(data => console.log(data))
+                .catch(err => console.error(err));
+
+                Explanation:
+                    Updates only part of the resource (e.g., price)
+
+            (5) DELETE Request (Remove Data)
+                fetch('http://localhost:3000/api/products/1', {
+                method: 'DELETE'
+                })
+                .then(res => {
+                    if (res.status === 204) console.log('Product deleted');
+                })
+                .catch(err => console.error(err));
+
+                Explanation:
+                    Removes the resource
+                    Status 204 No Content indicates success
+
+        Handling Response
+            Fetch resolves to a Response object, not the actual data.
+            Use .json(), .text(), or .blob() to parse the response.
+
+            fetch('/api/products')
+            .then(res => {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            })
+            .then(data => console.log(data))
+            .catch(err => console.error('Fetch error:', err));
+
+        Real-Life Example (E-commerce App)
+            Scenario: Display all products on the frontend.
+
+            async function fetchProducts() {
+            try {
+                const response = await fetch('http://localhost:3000/api/products');
+                if (!response.ok) throw new Error('Error fetching products');
+                const products = await response.json();
+                products.forEach(p => {
+                console.log(`Product: ${p.name}, Price: ${p.price}`);
+                });
+            } catch (err) {
+                console.error(err);
+            }
+            }
+
+            fetchProducts();
+
+            Explanation:
+                Uses async/await for cleaner syntax
+                Handles both success and error
+                Loops through data to display products
+
+        Important Points
+            (1) Fetch API is asynchronous and returns a Promise.
+            (2) Always handle errors using .catch() or try/catch.
+            (3) Specify Content-Type in headers when sending JSON.
+            (4) Can be used with all HTTP methods (GET, POST, PUT, PATCH, DELETE).
+
+        Interview Tips
+            (1) Know difference between Fetch API and Axios.
+            (2) Be able to explain how to handle errors and response parsing.
+            (3) Understand async/await vs .then() syntax.
+            (4) Mention real-life use cases: fetching products, user login, updating profile, deleting account.
